@@ -10,12 +10,9 @@ const api = axios.create({
   }
 });
 
-// Add token automatically to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
-    console.log("TOKEN:", token);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -24,6 +21,18 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Something went wrong";
+
+    return Promise.reject(new Error(message));
+  }
 );
 
 export default api;

@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import AdminPanelPage from "./pages/AdminPanelPage";
 import AiAnalysisPage from "./pages/AiAnalysisPage";
@@ -26,35 +27,38 @@ const App = () => {
 
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Direct routes without ProtectedRoute */}
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
 
-        <Route
-          path="/complaints/new"
-          element={<ComplaintRegistrationPage />}
-        />
+          <Route
+            path="/complaints/new"
+            element={<ComplaintRegistrationPage />}
+          />
 
-        <Route
-          path="/complaints"
-          element={<ComplaintListPage />}
-        />
+          <Route
+            path="/complaints"
+            element={<ComplaintListPage />}
+          />
 
-        <Route
-          path="/complaints/:id"
-          element={<ComplaintDetailsPage />}
-        />
+          <Route
+            path="/complaints/:id"
+            element={<ComplaintDetailsPage />}
+          />
 
-        <Route
-          path="/complaints/:id/status"
-          element={<ComplaintStatusUpdatePage />}
-        />
+          <Route
+            path="/complaints/:id/status"
+            element={<ComplaintStatusUpdatePage />}
+          />
 
-        <Route
-          path="/ai-analysis/:id"
-          element={<AiAnalysisPage />}
-        />
+          <Route
+            path="/ai-analysis/:id"
+            element={<AiAnalysisPage />}
+          />
+        </Route>
 
-        <Route path="/admin" element={<AdminPanelPage />} />
+        <Route element={<ProtectedRoute adminOnly />}>
+          <Route path="/admin" element={<AdminPanelPage />} />
+        </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
