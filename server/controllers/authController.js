@@ -36,10 +36,11 @@ export const login = asyncHandler(async (req, res) => {
     error.statusCode = 401;
     throw error;
   }
+  const token = generateToken(user._id);
 
   res.json({
     user: userPayload(user),
-    token: generateToken(user._id)
+    token: token
   });
 });
 
