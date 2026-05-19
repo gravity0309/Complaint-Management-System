@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useCallback,
   useState
 } from "react";
 
@@ -16,16 +17,27 @@ import {
 
 const AuthContext = createContext(null);
 
+const getStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch (_error) {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getStoredUser());
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProfile = async () => {
-      const token = localStorage.getItem("token");
-
       if (!token) {
+        localStorage.removeItem("user");
+        setUser(null);
         setLoading(false);
         return;
       }
@@ -34,22 +46,26 @@ export const AuthProvider = ({ children }) => {
         const data = await getProfile();
 
         setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
       } catch (_error) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        setToken(null);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
     loadProfile();
-  }, []);
+  }, [token]);
 
   // LOGIN
-  const login = async (payload) => {
+  const login = useCallback(async (payload) => {
     const data = await loginUser(payload);
 
     localStorage.setItem("token", data.token);
+    setToken(data.token);
 
     localStorage.setItem(
       "user",
@@ -60,14 +76,15 @@ export const AuthProvider = ({ children }) => {
 
     toast.success("Logged in successfully");
 
-    return data;
-  };
+    return data.user;
+  }, []);
 
   // SIGNUP
-  const signup = async (payload) => {
+  const signup = useCallback(async (payload) => {
     const data = await signupUser(payload);
 
     localStorage.setItem("token", data.token);
+    setToken(data.token);
 
     localStorage.setItem(
       "user",
@@ -78,31 +95,32 @@ export const AuthProvider = ({ children }) => {
 
     toast.success("Account created successfully");
 
-    return data;
-  };
+    return data.user;
+  }, []);
 
   // LOGOUT
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("token");
 
     localStorage.removeItem("user");
 
+    setToken(null);
     setUser(null);
 
     toast.success("Logged out");
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
       user,
       loading,
-      isAuthenticated: Boolean(user),
+      isAuthenticated: Boolean(token && user),
       isAdmin: user?.role === "admin",
       login,
       signup,
       logout
     }),
-    [user, loading]
+    [user, loading, token, login, signup, logout]
   );
 
   return (

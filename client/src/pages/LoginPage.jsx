@@ -1,13 +1,14 @@
 import { useState } from "react";
+
 import toast from "react-hot-toast";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+
+import { Link } from "react-router-dom";
+
 import FormField from "../components/FormField";
-import { useAuth } from "../context/AuthContext";
+
+import { loginUser } from "../services/authService";
 
 const LoginPage = () => {
-  const { login, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
   const [form, setForm] = useState({
     email: "",
     password: ""
@@ -15,29 +16,32 @@ const LoginPage = () => {
 
   const [loading, setLoading] = useState(false);
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     setLoading(true);
 
     try {
-      const response = await login(form);
+      // API call
+      const data = await loginUser(form);
 
-      // Save token and user
-      localStorage.setItem("token", response.token);
+      console.log("LOGIN RESPONSE:", data);
+
+      // Save token correctly
+      localStorage.setItem("token", data.token);
 
       localStorage.setItem(
         "user",
-        JSON.stringify(response.user)
+        JSON.stringify(data.user)
       );
 
       toast.success("Logged in successfully");
 
-      navigate("/dashboard");
+      // Force redirect
+      window.location.href = "/dashboard";
     } catch (error) {
+      console.error(error);
+
       toast.error(error.message);
     } finally {
       setLoading(false);

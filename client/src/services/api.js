@@ -1,25 +1,29 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://localhost:5000/api",
+
+  headers: {
+    "Content-Type": "application/json"
+  }
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+// Add token automatically to every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+    console.log("TOKEN:", token);
 
-  return config;
-});
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const message = error.response?.data?.message || "Something went wrong";
-    return Promise.reject(new Error(message));
-  }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 export default api;
